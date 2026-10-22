@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Image Inspector</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" defer></script>
     <script src="script.js" defer></script>
   </head>
   <body>
@@ -18,6 +20,12 @@
 
       <section id="inspection" aria-label="Image inspection" hidden>
         <div id="preview"></div>
+        <section aria-labelledby="detection-heading">
+          <h2 id="detection-heading">Object detection</h2>
+          <button id="detect-button" type="button">Detect objects</button>
+          <p id="detection-status" role="status" aria-live="polite"></p>
+          <ul id="detections" aria-label="Detected objects"></ul>
+        </section>
         <h2>File details</h2>
         <dl>
           <dt>File name</dt>
