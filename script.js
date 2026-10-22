@@ -9,6 +9,44 @@ let selection = 0;
 let objectUrl;
 let modelPromise;
 
+const sampleArtwork = `
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500">
+    <defs>
+      <linearGradient id="surface" x2="1" y2="1">
+        <stop stop-color="#3686c8"/>
+        <stop offset=".5" stop-color="#65a8e0"/>
+        <stop offset="1" stop-color="#3280c1"/>
+      </linearGradient>
+      <radialGradient id="metal">
+        <stop stop-color="#eee9bd"/>
+        <stop offset=".55" stop-color="#c4c27c"/>
+        <stop offset=".7" stop-color="#292c19"/>
+        <stop offset=".79" stop-color="#706f3a"/>
+        <stop offset="1" stop-color="#22271a"/>
+      </radialGradient>
+      <filter id="grain">
+        <feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" stitchTiles="stitch"/>
+        <feColorMatrix type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="table" tableValues="0 .11"/></feComponentTransfer>
+        <feBlend in="SourceGraphic" mode="soft-light"/>
+      </filter>
+    </defs>
+    <rect width="720" height="500" fill="url(#surface)"/>
+    <path d="M360 30v440M120 250h480" stroke="#325e83" stroke-width="2" opacity=".35"/>
+    <g filter="url(#grain)" transform="translate(360 250) rotate(15)">
+      <path d="M-18-112 13-115 34-69 92-35 96-8 58 22 37 81 9 87-25 52-81 28-89-1-55-38Z" fill="#282a18" stroke="#535535" stroke-width="8"/>
+      <circle r="70" fill="url(#metal)" stroke="#171b12" stroke-width="8"/>
+      <circle r="43" fill="#dedbb3" stroke="#282b1c" stroke-width="6"/>
+      <circle r="31" fill="#7aa5d9" stroke="#f0edcf" stroke-width="7"/>
+      <circle r="22" fill="#76a4de" stroke="#797b52" stroke-width="3"/>
+      <path d="M-50-25q45-35 92-5M-52 27q47 27 99-5" fill="none" stroke="#aaa879" stroke-width="5" opacity=".8"/>
+    </g>
+    <path d="M360 80v80M360 340v90M210 250h80M430 250h90" stroke="#5482a8" stroke-width="2" opacity=".45"/>
+  </svg>`;
+
+document.getElementById("sample-image").src =
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(sampleArtwork)}`;
+
 function releaseObjectUrl() {
   if (objectUrl) {
     URL.revokeObjectURL(objectUrl);
@@ -132,6 +170,56 @@ fileInput.addEventListener("change", () => {
 
   objectUrl = URL.createObjectURL(file);
   image.src = objectUrl;
+});
+
+document.getElementById("project-items").addEventListener("click", (event) => {
+  const row = event.target.closest(".project-row");
+  if (!row) return;
+
+  document.querySelector(".project-row.selected .active-dot")?.remove();
+  document.querySelector(".project-row.selected")?.classList.remove("selected");
+  row.classList.add("selected");
+  const dot = document.createElement("i");
+  dot.className = "active-dot";
+  row.append(dot);
+});
+
+document.getElementById("export-button").addEventListener("click", () => {
+  const project = document.querySelector(".project-row.selected strong")?.textContent || "PM10";
+  const content = `検査プログラム: ${project}\n判定結果: OK\nSUB010: 97.1%\nSUB020: 94.6%\n`;
+  const download = document.createElement("a");
+  download.href = URL.createObjectURL(new Blob([content], { type: "text/plain;charset=utf-8" }));
+  download.download = `${project}-inspection.txt`;
+  download.click();
+  URL.revokeObjectURL(download.href);
+});
+
+document.querySelector(".add-project").addEventListener("click", () => {
+  const projects = document.getElementById("project-items");
+  const nextNumber = projects.querySelectorAll(".project-row").length + 10;
+  const row = document.createElement("button");
+  row.className = "project-row";
+  row.dataset.project = `PM${nextNumber}`;
+  row.type = "button";
+  const thumbnail = document.createElement("span");
+  thumbnail.className = "thumbnail";
+  thumbnail.textContent = "▧";
+  const metadata = document.createElement("span");
+  metadata.className = "project-meta";
+  const name = document.createElement("strong");
+  name.textContent = `PM${nextNumber}`;
+  const status = document.createElement("small");
+  status.append("ステータス: ");
+  const available = document.createElement("b");
+  available.textContent = "利用可";
+  status.append(available);
+  const actions = document.createElement("span");
+  actions.className = "row-actions";
+  actions.textContent = "✎　▢　▤";
+  metadata.append(name, status);
+  row.append(thumbnail, metadata, actions);
+  projects.append(row);
+  row.click();
 });
 
 window.addEventListener("pagehide", releaseObjectUrl);
