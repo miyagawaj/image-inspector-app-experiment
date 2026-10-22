@@ -172,15 +172,16 @@ fileInput.addEventListener("change", () => {
   image.src = objectUrl;
 });
 
-document.querySelectorAll(".project-row").forEach((row) => {
-  row.addEventListener("click", () => {
-    document.querySelector(".project-row.selected")?.classList.remove("selected");
-    row.classList.add("selected");
-    document.querySelector(".project-row.selected .active-dot")?.remove();
-    const dot = document.createElement("i");
-    dot.className = "active-dot";
-    row.append(dot);
-  });
+document.getElementById("project-items").addEventListener("click", (event) => {
+  const row = event.target.closest(".project-row");
+  if (!row) return;
+
+  document.querySelector(".project-row.selected .active-dot")?.remove();
+  document.querySelector(".project-row.selected")?.classList.remove("selected");
+  row.classList.add("selected");
+  const dot = document.createElement("i");
+  dot.className = "active-dot";
+  row.append(dot);
 });
 
 document.getElementById("export-button").addEventListener("click", () => {
@@ -200,7 +201,23 @@ document.querySelector(".add-project").addEventListener("click", () => {
   row.className = "project-row";
   row.dataset.project = `PM${nextNumber}`;
   row.type = "button";
-  row.innerHTML = `<span class="thumbnail">▧</span><span class="project-meta"><strong>PM${nextNumber}</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span>`;
+  const thumbnail = document.createElement("span");
+  thumbnail.className = "thumbnail";
+  thumbnail.textContent = "▧";
+  const metadata = document.createElement("span");
+  metadata.className = "project-meta";
+  const name = document.createElement("strong");
+  name.textContent = `PM${nextNumber}`;
+  const status = document.createElement("small");
+  status.append("ステータス: ");
+  const available = document.createElement("b");
+  available.textContent = "利用可";
+  status.append(available);
+  const actions = document.createElement("span");
+  actions.className = "row-actions";
+  actions.textContent = "✎　▢　▤";
+  metadata.append(name, status);
+  row.append(thumbnail, metadata, actions);
   projects.append(row);
   row.click();
 });
