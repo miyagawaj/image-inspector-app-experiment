@@ -1,43 +1,158 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Image Inspector</title>
+    <title>+Candiii | 検査プログラム</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js" defer></script>
     <script src="script.js" defer></script>
   </head>
   <body>
-    <main>
-      <h1>Image Inspector</h1>
-      <p>Select an image to preview it and inspect its basic details. Your file stays on your device.</p>
+    <header class="window-bar" aria-label="アプリケーションバー">
+      <span class="bug-mark" aria-hidden="true">✿</span>
+      <div class="window-controls" aria-hidden="true"><span>−</span><span>▢</span><span>×</span></div>
+    </header>
 
-      <label for="image-file">Choose an image</label>
-      <input id="image-file" type="file" accept="image/*" aria-describedby="status">
-      <p id="status" role="status">No image selected.</p>
+    <main class="app-shell">
+      <aside class="project-list" aria-label="画像一覧">
+        <div class="list-toolbar">
+          <h1>一覧</h1>
+          <label class="pill-button" for="image-file">インポート</label>
+          <button class="pill-button" id="export-button" type="button">エクスポート</button>
+          <button class="collapse-button" type="button" aria-label="一覧を折りたたむ">‹</button>
+        </div>
+        <input id="image-file" class="file-input" type="file" accept="image/*" aria-describedby="status">
+        <p id="status" class="sr-only" role="status">画像を選択してください。</p>
+        <div class="project-items" id="project-items">
+          <button class="project-row" data-project="PM30" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM30</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM20" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM20</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM50" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM50</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM40" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM40</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM90" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM90</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM80" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM80</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM70" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM70</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row" data-project="PM60" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM60</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span></button>
+          <button class="project-row selected" data-project="PM10" type="button"><span class="thumbnail">▧</span><span class="project-meta"><strong>PM10</strong><small>ステータス: <b>利用可</b></small></span><span class="row-actions">✎　▢　▤</span><i class="active-dot"></i></button>
+        </div>
+        <button class="add-project" type="button" aria-label="プロジェクトを追加">＋</button>
+      </aside>
 
-      <section id="inspection" aria-label="Image inspection" hidden>
-        <div id="preview"></div>
-        <section aria-labelledby="detection-heading">
-          <h2 id="detection-heading">Object detection</h2>
-          <button id="detect-button" type="button">Detect objects</button>
-          <p id="detection-status" role="status" aria-live="polite"></p>
-          <ul id="detections" aria-label="Detected objects"></ul>
+      <section class="inspector-column" aria-label="画像検査">
+        <div class="run-bar"><button id="detect-button" type="button" aria-label="検査を実行">▶</button></div>
+        <section class="image-card input-card" aria-labelledby="input-heading">
+          <h2 id="input-heading">入力画像</h2>
+          <div class="image-tabs">
+            <button type="button" aria-label="カメラ画像">▣</button>
+            <button type="button" class="active" aria-label="選択画像">▣</button>
+          </div>
+          <div class="image-source">
+            <span class="model-label">Models</span>
+            <select aria-label="モデル"><option>new_model</option><option>model_02</option></select>
+            <span class="model-chip">new_model</span>
+          </div>
+          <div id="preview" class="image-preview">
+            <div class="image-stage">
+              <img id="sample-image" alt="青い背景の上に置かれた金属部品">
+            </div>
+            <button class="back-button" type="button">戻る</button>
+          </div>
         </section>
-        <h2>File details</h2>
-        <dl>
-          <dt>File name</dt>
-          <dd id="file-name"></dd>
-          <dt>MIME type</dt>
-          <dd id="mime-type"></dd>
-          <dt>File size</dt>
-          <dd id="file-size"></dd>
-          <dt>Dimensions (width × height)</dt>
-          <dd id="dimensions"></dd>
-        </dl>
+        <section class="image-card result-card" aria-labelledby="result-heading">
+          <h2 id="result-heading">結果出力</h2>
+          <div class="result-title">SUB010 &gt;&gt; 検査結果画像</div>
+          <div class="result-image">
+            <div class="inspection-graphic grayscale" aria-hidden="true">
+              <span class="crosshair horizontal"></span><span class="crosshair vertical"></span>
+              <span class="part outer-ring"></span><span class="part inner-ring"></span><span class="part hole"></span>
+              <span class="confidence-box">97%</span>
+            </div>
+          </div>
+        </section>
+        <section class="message-card" aria-labelledby="message-heading">
+          <h2 id="message-heading">メッセージ</h2>
+          <div class="message-body">
+            <p id="detection-status" role="status" aria-live="polite">判定結果: OK</p>
+            <p>検査時間: 0.6sec</p>
+            <p>SUB010 &gt;&gt; 一致率: 97.1%</p>
+            <p>SUB020 &gt;&gt; 一致率: 94.6%</p>
+            <ul id="detections" class="detection-results" aria-label="検出結果"></ul>
+          </div>
+        </section>
+        <section class="file-details" aria-label="ファイル詳細">
+          <span id="file-name"></span><span id="mime-type"></span><span id="file-size"></span><span id="dimensions"></span>
+        </section>
+      </section>
+
+      <nav class="block-categories" aria-label="ブロックカテゴリ">
+        <button class="category first">初回処理</button>
+        <button class="category input">入力画像</button>
+        <button class="category preprocess">前処理</button>
+        <button class="category main-process">メイン処理</button>
+        <button class="category subprogram">サブプログラム</button>
+        <button class="category other">その他</button>
+      </nav>
+
+      <section class="workspace" aria-label="検査プログラムのブロック">
+        <div class="block-stack setup-stack">
+          <h2>初回処理</h2>
+          <div class="teal-block">
+            <div class="block-line"><b class="dropdown">PM10⌄</b><strong>を登録する |</strong><span class="input-field">new_model/image_20_crop.png</span></div>
+            <div class="cyan-block"><b class="dropdown">PM10⌄</b><strong>をグレースケール化する</strong></div>
+            <div class="block-line"><b class="dropdown">PM20⌄</b><strong>を登録する |</strong><span class="input-field">new_model/image_20_crop_1.png</span></div>
+            <div class="cyan-block"><b class="dropdown">PM20⌄</b><strong>をグレースケール化する</strong></div>
+          </div>
+        </div>
+        <div class="block-stack test-stack">
+          <h2>検査プログラム</h2>
+          <div class="purple-block">
+            <div class="block-line"><strong>入力画像を</strong><b class="dropdown">検査画像⌄</b><strong>とする</strong></div>
+            <div class="block-line nested"><b class="white-chip">SUB010</b><strong>を実行する</strong></div>
+            <div class="block-line nested"><b class="white-chip">SUB020</b><strong>を実行する</strong></div>
+          </div>
+        </div>
+        <div class="subprogram-row">
+          <section class="subprogram">
+            <h2>SUB010</h2>
+            <div class="cyan-block"><b class="dropdown">検査画像⌄</b><strong>をグレースケール化する</strong></div>
+            <div class="blue-block">
+              <h3>物体検出</h3>
+              <p>➤ 検査対象画像: <b class="dropdown">検査画像⌄</b></p>
+              <p>➤ マスター画像: <b class="dropdown">PM10⌄</b></p>
+              <p>➤ マスキング処理: <b class="select-chip">なし⌄</b></p>
+              <p>➤ マスタ画像回転: <b class="number-chip">-3</b> ～ <b class="number-chip">3</b> , <b class="number-chip">1</b> 度単位</p>
+              <p>➤ OK判定条件: <b class="number-chip">90</b> % <b class="select-chip">&lt;⌄</b> 一致率</p>
+            </div>
+            <footer>【サブプログラム】</footer>
+          </section>
+          <section class="subprogram second-program">
+            <h2>SUB020</h2>
+            <div class="cyan-block"><b class="dropdown">検査画像⌄</b><strong>をグレースケール化する</strong></div>
+            <div class="blue-block">
+              <h3>物体検出</h3>
+              <p>➤ 検査対象画像: <b class="dropdown">検査画像⌄</b></p>
+              <p>➤ マスター画像: <b class="dropdown">PM20⌄</b></p>
+              <p>➤ マスキング処理: <b class="select-chip">なし⌄</b></p>
+              <p>➤ マスタ画像回転: <b class="number-chip">-3</b> ～ <b class="number-chip">3</b> , <b class="number-chip">1</b> 度単位</p>
+              <p>➤ OK判定条件: <b class="number-chip">90</b> % <b class="select-chip">&lt;⌄</b> 一致率</p>
+            </div>
+            <footer>【サブプログラム】</footer>
+          </section>
+        </div>
+        <div class="workspace-controls" aria-hidden="true"><span>⊙</span><span>＋</span><span>−</span></div>
       </section>
     </main>
+
+    <footer class="app-footer">
+      <div class="brand">+Candiii <small>v.1.4.6</small></div>
+      <nav class="footer-nav" aria-label="メインメニュー">
+        <button class="current" type="button"><span>♟</span>検査プログラム</button>
+        <button type="button"><span>▧</span>画像一覧</button>
+        <button type="button"><span>▣</span>検査設定</button>
+        <button type="button"><span>⚙</span>プロジェクト設定</button>
+        <button class="home-button" type="button" aria-label="ホーム">◆</button>
+      </nav>
+    </footer>
   </body>
 </html>
